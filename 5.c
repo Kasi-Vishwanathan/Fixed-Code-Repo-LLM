@@ -2,7 +2,7 @@
 
 int main() {
     int x = 10;
-    if (x == 5) { // Fixed comparison operator
+    if (x == 5) { // Corrected comparison operator
         printf("x is 5\n");
     } else {
         printf("x is not 5\n");
