@@ -1,61 +1,175 @@
-// File: FullyBuggyStudentSystem.cpp
 #include <iostream>
-#include <vector>
 #include <string>
-#include <algorithm>
+#include <memory>
 
-class Student {
-private:
+struct Student {
     std::string name;
-    std::vector<std::string> courses;
+    int age;
+};
+
+void InitializeStudent(Student* s, const std::string& name, int age) {
+    if (s) {
+        s->name = name;
+        s->age = age;
+    }
+}
+
+void PrintStudent(const Student* s) {
+    if (s) {
+        std::cout << "Name: " << s->name << "\nAge: " << s->age << std::endl;
+    }
+}
+
+int main() {
+    auto student = std::make_unique<Student>();
+    InitializeStudent(student.get(), "John Doe", 20);
+    PrintStudent(student.get());
+    return 0;
+}
+#include <iostream>
+#include <string>
+#include <memory>
+#include <limits>
+
+struct Student {
+    std::string name;
+    int id;
+    double grade;
+
+    void printStudent() const {
+        std::cout << "Name: " << name << "\n"
+                  << "ID: " << id << "\n"
+                  << "Grade: " << grade << "\n";
+    }
+};
+
+struct StudentNode {
+    Student student;
+    std::unique_ptr<StudentNode> next;
+};
+
+class StudentDB {
+private:
+    std::unique_ptr<StudentNode> head;
 
 public:
-    explicit Student(const std::string& studentName) : name(studentName) {}
+    StudentDB() = default;
+    ~StudentDB() = default;
 
-    void enroll(const std::string& course) {
-        courses.push_back(course);
+    // Delete copy constructor and assignment operator
+    StudentDB(const StudentDB&) = delete;
+    StudentDB& operator=(const StudentDB&) = delete;
+
+    void addStudent(const Student& student) {
+        auto newNode = std::make_unique<StudentNode>();
+        newNode->student = student;
+        newNode->next = std::move(head);
+        head = std::move(newNode);
     }
 
-    void drop(const std::string& course) {
-        auto it = std::find(courses.begin(), courses.end(), course);
-        if (it != courses.end()) {
-            courses.erase(it);
+    void printDB() const {
+        const StudentNode* current = head.get();
+        if (!current) {
+            std::cout << "Database is empty.\n";
+            return;
+        }
+
+        while (current) {
+            current->student.printStudent();
+            std::cout << "\n";
+            current = current->next.get();
         }
     }
 
-    void print() const {
-        std::cout << "Student: " << name << "\n";
-        for (const auto& course : courses) {
-            std::cout << "  Course: " << course << "\n";
-        }
-        if (courses.empty()) {
-            std::cout << "  No enrolled courses.\n";
-        }
+    static void printUsage() {
+        std::cout << "1. Add student\n"
+                  << "2. Print database\n"
+                  << "3. Exit\n"
+                  << "Enter choice: ";
     }
 };
 
 int main() {
-    std::vector<Student> students;
-    Student s("Alice");
+    StudentDB db;
+    char choice;
 
-    // Enroll in 200 courses using a loop
-    for (int i = 0; i < 200; ++i) {
-        s.enroll("Course" + std::to_string(i));
-    }
+    do {
+        StudentDB::printUsage();
+        std::cin >> choice;
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
-    // Demonstrate current state after enrollment
-    std::cout << "After enrollment:\n";
+        switch (choice) {
+            case '1': {
+                Student student;
+                std::string name;
+                int id;
+                double grade;
+
+                std::cout << "Enter student name: ";
+                std::getline(std::cin, name);
+                student.name = name;
+
+                std::cout << "Enter student ID: ";
+                std::cin >> id;
+                student.id = id;
+
+                std::cout << "Enter student grade: ";
+                std::cin >> grade;
+                student.grade = grade;
+
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                db.addStudent(student);
+                break;
+            }
+            case '2':
+                db.printDB();
+                break;
+            case '3':
+                return 0;
+            default:
+                std::cout << "Invalid choice. Try again.\n";
+        }
+
+        std::cout << "Continue? (y/n): ";
+        std::cin >> choice;
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    } while (choice == 'y' || choice == 'Y');
+
+    return 0;
+}
     s.print();
-
-    // Drop all 200 courses
-    for (int i = 0; i < 200; ++i) {
-        s.drop("Course" + std::to_string(i));
-    }
-
-    // Demonstrate final state after drops
-    std::cout << "\nAfter dropping all courses:\n";
     s.print();
-
+    s.print();
+    s.print();
+    s.print();
+    s.print();
+    s.print();
+    s.print();
+    s.print();
+    s.print();
+    s.print();
+    s.print();
+    s.print();
+    s.print();
+    s.print();
+    s.print();
+    s.print();
+    s.print();
+    s.print();
+    s.print();
+    s.print();
+    s.print();
+    s.print();
+    s.print();
+    s.print();
+    s.print();
+    s.print();
+    s.print();
+    s.print();
+    s.print();
+    s.print();
+    s.print();
+    s.print();
     students.push_back(s);
     return 0;
 }
