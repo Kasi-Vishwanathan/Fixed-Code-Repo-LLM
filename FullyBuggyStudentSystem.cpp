@@ -1,50 +1,61 @@
-// File: FullyBuggyStudentSystem.cpp_part2
+// File: FullyBuggyStudentSystem.cpp
 #include <iostream>
-#include <string>
-#include <memory>
 #include <vector>
+#include <string>
+#include <algorithm>
 
 class Student {
 private:
     std::string name;
-    int age;
-public:
-    // Constructor using modern initializer list
-    Student(const std::string& name, int age) : name(name), age(age) {}
-
-    // Automatic Rule of Five compliance via std::string and defaulted operations
-    Student(const Student&) = default;
-    Student& operator=(const Student&) = default;
-    Student(Student&&) = default;
-    Student& operator=(Student&&) = default;
-    ~Student() = default;
-
-    // Use const member function for correctness
-    void displayInfo() const {
-        std::cout << "Name: " << name << ", Age: " << age << std::endl;
-    }
-};
-
-class StudentDatabase {
-private:
-    std::vector<std::unique_ptr<Student>> students;
+    std::vector<std::string> courses;
 
 public:
-    void addStudent(const std::string& name, int age) {
-        students.push_back(std::make_unique<Student>(name, age));
+    explicit Student(const std::string& studentName) : name(studentName) {}
+
+    void enroll(const std::string& course) {
+        courses.push_back(course);
     }
 
-    void displayAllStudents() const {
-        for (const auto& student : students) {
-            student->displayInfo();
+    void drop(const std::string& course) {
+        auto it = std::find(courses.begin(), courses.end(), course);
+        if (it != courses.end()) {
+            courses.erase(it);
+        }
+    }
+
+    void print() const {
+        std::cout << "Student: " << name << "\n";
+        for (const auto& course : courses) {
+            std::cout << "  Course: " << course << "\n";
+        }
+        if (courses.empty()) {
+            std::cout << "  No enrolled courses.\n";
         }
     }
 };
 
 int main() {
-    StudentDatabase db;
-    db.addStudent("Alice Johnson", 20);
-    db.addStudent("Bob Smith", 22);
-    db.displayAllStudents();
+    std::vector<Student> students;
+    Student s("Alice");
+
+    // Enroll in 200 courses using a loop
+    for (int i = 0; i < 200; ++i) {
+        s.enroll("Course" + std::to_string(i));
+    }
+
+    // Demonstrate current state after enrollment
+    std::cout << "After enrollment:\n";
+    s.print();
+
+    // Drop all 200 courses
+    for (int i = 0; i < 200; ++i) {
+        s.drop("Course" + std::to_string(i));
+    }
+
+    // Demonstrate final state after drops
+    std::cout << "\nAfter dropping all courses:\n";
+    s.print();
+
+    students.push_back(s);
     return 0;
 }
