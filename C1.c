@@ -1,10 +1,10 @@
-// 50‑line Buggy C: Sum of array with naive menu
+// C1.c
 #include <stdio.h>
 #include <stdlib.h>
 
-int sum(int *a, int n) {              // BUG: no null‑check, no overflow guard
+int sum(int *a, int n) {
     int s = 0;
-    for (int i = 0; i <= n; i++) {    // BUG: off‑by‑one (should be i < n)
+    for (int i = 0; i < n; i++) {  // Corrected loop condition
         s += a[i];
     }
     return s;
@@ -14,11 +14,20 @@ int main() {
     int n, *arr;
     printf("Enter size: ");
     scanf("%d", &n);
-    arr = malloc(sizeof(int) * n);    // BUG: malloc not checked for NULL
+    if (n <= 0) {  // Check for valid size
+        printf("Invalid size. Must be a positive integer.\n");
+        return 1;
+    }
+    arr = malloc(sizeof(int) * n);
+    if (arr == NULL) {  // Check allocation success
+        printf("Memory allocation failed.\n");
+        return 1;
+    }
 
     printf("Enter %d numbers:\n", n);
-    for (int i = 0; i < n; i++)
+    for (int i = 0; i < n; i++) {
         scanf("%d", &arr[i]);
+    }
 
     int choice = 0;
     while (choice != 3) {
@@ -27,13 +36,14 @@ int main() {
         if (choice == 1) {
             printf("Sum = %d\n", sum(arr, n));
         } else if (choice == 2) {
-            for (int i = 0; i <= n; i++)          // BUG: prints one past end
+            for (int i = 0; i < n; i++) {  // Corrected loop condition
                 printf("%d ", arr[i]);
+            }
             printf("\n");
         } else if (choice != 3) {
             printf("Bad option\n");
         }
     }
-    // BUG: forgot free(arr);
+    free(arr);  // Free allocated memory
     return 0;
 }
