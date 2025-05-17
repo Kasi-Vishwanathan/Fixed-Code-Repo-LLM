@@ -1,49 +1,34 @@
-// C1.c
+/* C1.c */
 #include <stdio.h>
 #include <stdlib.h>
 
-int sum(int *a, int n) {
-    int s = 0;
-    for (int i = 0; i < n; i++) {  // Corrected loop condition
-        s += a[i];
+/* Original K&R-style declarations */
+void* zcalloc();
+void zcfree();
+
+/* Modernized declarations */
+void* zcalloc(unsigned items, unsigned size);
+void zcfree(void* ptr);
+
+int main(void) {
+    unsigned items = 10;
+    unsigned size = sizeof(int);
+    int* array = (int*)zcalloc(items, size);
+    
+    if (array) {
+        printf("Memory allocation successful\n");
+        zcfree(array);
+    } else {
+        printf("Memory allocation failed\n");
     }
-    return s;
+    
+    return 0;
 }
 
-int main() {
-    int n, *arr;
-    printf("Enter size: ");
-    scanf("%d", &n);
-    if (n <= 0) {  // Check for valid size
-        printf("Invalid size. Must be a positive integer.\n");
-        return 1;
-    }
-    arr = malloc(sizeof(int) * n);
-    if (arr == NULL) {  // Check allocation success
-        printf("Memory allocation failed.\n");
-        return 1;
-    }
+void* zcalloc(unsigned items, unsigned size) {
+    return calloc(items, size);
+}
 
-    printf("Enter %d numbers:\n", n);
-    for (int i = 0; i < n; i++) {
-        scanf("%d", &arr[i]);
-    }
-
-    int choice = 0;
-    while (choice != 3) {
-        printf("\n1.Sum  2.Print  3.Exit\n");
-        scanf("%d", &choice);
-        if (choice == 1) {
-            printf("Sum = %d\n", sum(arr, n));
-        } else if (choice == 2) {
-            for (int i = 0; i < n; i++) {  // Corrected loop condition
-                printf("%d ", arr[i]);
-            }
-            printf("\n");
-        } else if (choice != 3) {
-            printf("Bad option\n");
-        }
-    }
-    free(arr);  // Free allocated memory
-    return 0;
+void zcfree(void* ptr) {
+    free(ptr);
 }
