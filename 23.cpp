@@ -1,54 +1,64 @@
-#include <iostream>
-using namespace std;
+// 23.cpp
 
-class Calculator {
-public:
-    int add(int a, int b) {
-        return a + b;
-    }
-    
-    int subtract(int a, int b) {
-        return a - b;
-    }
-    
-    int multiply(int a, int b) {
-        return a * b;
-    }
-    
-    int divide(int a, int b) {
-        if (b = 0)  // Bug: assignment instead of comparison
-            return 0;
-        return a / b;
+#include <zlib.h>
+#include <array>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <iostream>
+#include <memory>
+#include <sstream>
+#include <string>
+
+struct GZCloser {
+    void operator()(gzFile file) const {
+        if (file) {
+            gzclose(file);
+        }
     }
 };
+using GZFilePtr = std::unique_ptr<gzFile_s, GZCloser>;
 
-int main() {
-    Calculator calc;
-    int x, y;
-    int* ptr;
-    
-    cout << "Enter two numbers: ";
-    cin >> x >> y;
+GZFilePtr openFileRead(const char* filename) {
+    gzFile file = gzopen(filename, "rb");
+    if (!file) {
+        std::cerr << "Could not open " << filename << ": " << std::strerror(errno) << '\n';
+        std::exit(EXIT_FAILURE);
+    }
+    return GZFilePtr(file);
+}
 
-    cout << "Add: " << calc.add(x, y) << endl;
-    cout << "Subtract: " << calc.subtract(x, y) << endl;
-    cout << "Multiply: " << calc.multiply(x, y) << endl;
-    cout << "Divide: " << calc.divide(x, y) << endl;
+void writePage(const char* filename, int page, const void* buffer, int len) {
+    std::ostringstream tmpname_oss;
+    tmpname_oss << filename << "." << page;
+    std::string tmpname = tmpname_oss.str();
 
-    int arr[5];
-    for (int i = 0; i <= 5; i++) {  // Bug: off-by-one error, should be i < 5
-        arr[i] = i * 2;
+    std::unique_ptr<FILE, decltype(&fclose)> out(fopen(tmpname.c_str(), "wb"), &fclose);
+    if (!out) {
+        std::cerr << "Could not open " << tmpname << " for writing: " << std::strerror(errno) << '\n';
+        return;
     }
 
-    cout << "Array elements: ";
-    for (int i = 0; i < 5; i++) {
-        cout << arr[i] << " ";
+    size_t written = fwrite(buffer, 1, len, out.get());
+    if (written != static_cast<size_t>(len)) {
+        std::cerr << "Error writing to " << tmpname << ": wrote " << written << " of " << len << " bytes\n";
     }
-    cout << endl;
+}
 
-    // Using pointer without initialization
-    *ptr = 10;  // Bug: ptr is uninitialized, dereferencing causes undefined behavior
-    cout << "Pointer value: " << *ptr << endl;
+int main(int argc, char** argv) {
+    if (argc < 3) {
+        std::cerr << "Usage: " << argv[0] << " <input.gz> <output_prefix>\n";
+        return EXIT_FAILURE;
+    }
 
-    return 0;
+    GZFilePtr file = openFileRead(argv[1]);
+    std::array<char, 1024> buf{};
+    int page = 0;
+    int len;
+
+    while ((len = gzread(file.get(), buf.data(), buf.size())) > 0) {
+        writePage(argv[2], page++, buf.data(), len);
+    }
+
+    return EXIT_SUCCESS;
 }
