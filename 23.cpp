@@ -1,64 +1,67 @@
-// 23.cpp
-
-#include <zlib.h>
-#include <array>
+// File: 23.cpp
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <iostream>
-#include <memory>
-#include <sstream>
-#include <string>
 
-struct GZCloser {
-    void operator()(gzFile file) const {
-        if (file) {
-            gzclose(file);
-        }
-    }
+// Assume necessary zlib types are defined (e.g., typedefs for uLong, voidpf, ZCALLBACK)
+typedef void* voidpf;
+typedef unsigned long uLong;
+#define ZCALLBACK
+
+struct zlib_filefunc64_def {
+    voidpf (ZCALLBACK *open64_file)(voidpf, const char*, int);
+    int (ZCALLBACK *close_file)(voidpf, voidpf);
+    uLong (ZCALLBACK *read_file)(voidpf, voidpf, voidpf, uLong);
+    uLong (ZCALLBACK *write_file)(voidpf, voidpf, const voidpf, uLong);
+    long (ZCALLBACK *tell64_file)(voidpf, voidpf);
+    long (ZCALLBACK *seek64_file)(voidpf, voidpf, uLong, int);
+    int (ZCALLBACK *test_error)(voidpf, voidpf);
+    voidpf opaque;
 };
-using GZFilePtr = std::unique_ptr<gzFile_s, GZCloser>;
 
-GZFilePtr openFileRead(const char* filename) {
-    gzFile file = gzopen(filename, "rb");
-    if (!file) {
-        std::cerr << "Could not open " << filename << ": " << std::strerror(errno) << '\n';
-        std::exit(EXIT_FAILURE);
-    }
-    return GZFilePtr(file);
+static voidpf ZCALLBACK fopen64_file_func(const char* filename, const char* mode) {
+    return std::fopen(filename, mode);
 }
 
-void writePage(const char* filename, int page, const void* buffer, int len) {
-    std::ostringstream tmpname_oss;
-    tmpname_oss << filename << "." << page;
-    std::string tmpname = tmpname_oss.str();
-
-    std::unique_ptr<FILE, decltype(&fclose)> out(fopen(tmpname.c_str(), "wb"), &fclose);
-    if (!out) {
-        std::cerr << "Could not open " << tmpname << " for writing: " << std::strerror(errno) << '\n';
-        return;
-    }
-
-    size_t written = fwrite(buffer, 1, len, out.get());
-    if (written != static_cast<size_t>(len)) {
-        std::cerr << "Error writing to " << tmpname << ": wrote " << written << " of " << len << " bytes\n";
-    }
+static int ZCALLBACK fclose_file_func(voidpf opaque, voidpf stream) {
+    return std::fclose(static_cast<FILE*>(stream));
 }
 
-int main(int argc, char** argv) {
-    if (argc < 3) {
-        std::cerr << "Usage: " << argv[0] << " <input.gz> <output_prefix>\n";
-        return EXIT_FAILURE;
+static uLong ZCALLBACK fread_file_func(voidpf opaque, voidpf stream, void* buf, uLong size) {
+    size_t read = std::fread(buf, 1, size, static_cast<FILE*>(stream));
+    return static_cast<uLong>(read);
+}
+
+static uLong ZCALLBACK fwrite_file_func(voidpf opaque, voidpf stream, const void* buf, uLong size) {
+    size_t written = std::fwrite(buf, 1, size, static_cast<FILE*>(stream));
+    return static_cast<uLong>(written);
+}
+
+static long ZCALLBACK ftell64_file_func(voidpf opaque, voidpf stream) {
+    return static_cast<long>(std::ftell(static_cast<FILE*>(stream)));
+}
+
+static long ZCALLBACK fseek64_file_func(voidpf opaque, voidpf stream, uLong offset, int origin) {
+    int seekOrigin = SEEK_SET;
+    switch (origin) {
+        case 1: seekOrigin = SEEK_CUR; break;
+        case 2: seekOrigin = SEEK_END; break;
     }
+    return std::fseek(static_cast<FILE*>(stream), static_cast<long>(offset), seekOrigin);
+}
 
-    GZFilePtr file = openFileRead(argv[1]);
-    std::array<char, 1024> buf{};
-    int page = 0;
-    int len;
+static int ZCALLBACK ferror_file_func(voidpf opaque, voidpf stream) {
+    return std::ferror(static_cast<FILE*>(stream));
+}
 
-    while ((len = gzread(file.get(), buf.data(), buf.size())) > 0) {
-        writePage(argv[2], page++, buf.data(), len);
-    }
-
-    return EXIT_SUCCESS;
+void fill_fopen64_filefunc(zlib_filefunc64_def* pzlib_filefunc_def) {
+    // Initialize all fields to zero by value-initializing the struct
+    *pzlib_filefunc_def = zlib_filefunc64_def{};
+    pzlib_filefunc_def->open64_file = fopen64_file_func;
+    pzlib_filefunc_def->close_file = fclose_file_func;
+    pzlib_filefunc_def->read_file = fread_file_func;
+    pzlib_filefunc_def->write_file = fwrite_file_func;
+    pzlib_filefunc_def->tell64_file = ftell64_file_func;
+    pzlib_filefunc_def->seek64_file = fseek64_file_func;
+    pzlib_filefunc_def->test_error = ferror_file_func;
 }
