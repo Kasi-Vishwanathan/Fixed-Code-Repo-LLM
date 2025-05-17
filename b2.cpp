@@ -119,3 +119,45 @@ int main(int argc, char** argv) {
     }
     return exit_code;
 }
+// b2.cpp
+#include <vector>
+#include <iostream>
+#include <cstdlib>
+#include <cstdint>
+#include <stdexcept>
+
+void process_block(const void* buf, size_t len) {
+    // Use vector for automatic memory management
+    std::vector<uint8_t> outbuf;
+    try {
+        outbuf.resize(len * 2);
+    } catch (const std::bad_alloc&) {
+        std::cerr << "Memory allocation failed\n";
+        throw;
+    }
+
+    const uint8_t* input = static_cast<const uint8_t*>(buf);
+    
+    // Example processing: XOR each byte with 0x55
+    for (size_t i = 0; i < len; ++i) {
+        outbuf[i] = input[i] ^ 0x55;
+    }
+
+    // Simulated error check
+    if (len > 0 && input[0] == 0xFF) {
+        throw std::runtime_error("Invalid input data detected");
+    }
+
+    // Processed data remains in outbuf for further use
+}
+
+int main() {
+    try {
+        std::vector<uint8_t> data = {0x00, 0x01, 0x02, 0xFF};
+        process_block(data.data(), data.size());
+    } catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << '\n';
+        return EXIT_FAILURE;
+    }
+    return EXIT_SUCCESS;
+}
