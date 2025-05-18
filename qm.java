@@ -1,12 +1,11 @@
-public class qm {
+public class LoopExample {
     public static void main(String[] args) {
-        Integer[] arr = {1, 2, 3};
-        printArray(arr);
-    }
-
-    private static void printArray(Integer[] arr) {
-        for (int i = 0; i < arr.length; i++) {
-            System.out.println(arr[i]);
+        for (int i = 0; i < 5; i++) {
+            int j = 0;
+            while (j < 5) {
+                System.out.printf("i=%d, j=%d, sum=%d%n", i, j, i + j);
+                j += 2;
+            }
         }
     }
 }
