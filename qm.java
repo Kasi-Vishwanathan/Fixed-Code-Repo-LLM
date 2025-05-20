@@ -28,8 +28,8 @@ public class qm {
             reverseArray(numbers);
 
             System.out.println("Reversed array: ");
-            for (int i = 0; i < size; i++) {
-                System.out.print(numbers[i] + " ");
+            for (int num : numbers) {
+                System.out.print(num + " ");
             }
             System.out.println();
 
@@ -48,8 +48,8 @@ public class qm {
 
     public static int calculateSum(int[] arr) {
         int sum = 0;
-        for (int i = 0; i < arr.length; i++) {
-            sum += arr[i];
+        for (int num : arr) {
+            sum += num;
         }
         return sum;
     }
