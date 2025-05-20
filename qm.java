@@ -1,68 +1,19 @@
-import java.util.Scanner;
+import java.util.LinkedList;
+import java.util.Queue;
 
-public class Qm {
+public class qm {
     public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
-        System.out.println("Enter the size of the array: ");
-        int size = scanner.nextInt();
-        int[] numbers = new int[size];
+        Queue<String> queue = new LinkedList<>();
 
-        System.out.println("Enter " + size + " numbers:");
-        for (int i = 0; i < size; i++) {
-            numbers[i] = scanner.nextInt();
+        // Add elements
+        for (int i = 0; i <= 10; i++) {
+            queue.add(Integer.toString(i));
         }
 
-        System.out.println("Enter a number to find its index: ");
-        int target = scanner.nextInt();
-        int index = findIndex(numbers, target);
-
-        if (index == -1) {
-            System.out.println("Number not found.");
-        } else {
-            System.out.println("Number found at index: " + index);
+        // Process elements
+        while (!queue.isEmpty()) {
+            System.out.println("Processed: " + queue.poll());
         }
-
-        System.out.println("Sum of all elements: " + calculateSum(numbers));
-
-        System.out.println("Reversing the array...");
-        reverseArray(numbers);
-
-        System.out.println("Reversed array: ");
-        for (int i = 0; i < size; i++) {
-            System.out.print(numbers[i] + " ");
-        }
-        System.out.println();
-
-        System.out.println("Exiting program...");
-    }
-
-    public static int findIndex(int[] arr, int target) {
-        for (int i = 0; i < arr.length; i++) {
-            if (arr[i] == target) {
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    public static int calculateSum(int[] arr) {
-        int sum = 0;
-        for (int i = 0; i < arr.length; i++) {
-            sum += arr[i];
-        }
-        return sum;
-    }
-
-    public static void reverseArray(int[] arr) {
-        int left = 0;
-        int right = arr.length - 1;
-
-        while (left < right) {
-            int temp = arr[left];
-            arr[left] = arr[right];
-            arr[right] = temp;
-            left++;
-            right--;
-        }
+        System.out.println("Queue size now is " + queue.size());
     }
 }
